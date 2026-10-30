@@ -1,0 +1,35 @@
+name: CI on Kaggle Self-Hosted Runner
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, kaggle, cpu]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System info
+        run: |
+          echo "Runner: $(uname -a)"
+          echo "CPU: $(nproc) cores"
+          echo "Memory: $(free -h | awk '/Mem:/ {print $2}')"
+          echo "Disk: $(df -h / | awk 'NR==2 {print $4}' ) available"
+
+      - name: Set up build environment
+        run: |
+          echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq build-essential git curl cmake ninja-build openjdk-17-jdk
+
+      - name: Run build / tests
+        run: |
+          echo "Running CI on Kaggle self-hosted runner"
+          # Add your build/test commands here
+          echo "CI job completed successfully"
